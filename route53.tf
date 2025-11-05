@@ -9,7 +9,7 @@ data "aws_route53_zone" "shaqserver" {
 
 }
 
-# This returns the correct ELB hosted zone ID for your region (NLB or ALB)
+
 data "aws_elb_hosted_zone_id" "main" {}
 
 resource "aws_route53_record" "meowmart_alias" {
@@ -21,12 +21,12 @@ resource "aws_route53_record" "meowmart_alias" {
   allow_overwrite = true
 
   alias {
-    name                   = "a6dfa7bc875994238a9cd044b62c19c4-85e5ab39ef03a805.elb.us-east-1.amazonaws.com"
-    zone_id                = "Z26RNL4JYFTOTI"
+    # Automatically use the NLB/ALB hostname created by your Kubernetes service
+    name                   = replace(kubernetes_service.meowmart_service.status[0].load_balancer[0].ingress[0].hostname, "/\\.$/", "")
+    zone_id                = data.aws_elb_hosted_zone_id.main.id
     evaluate_target_health = false
   }
 }
-
 
 # Request an ACM certificate
 resource "aws_acm_certificate" "meowmart_cert" {
